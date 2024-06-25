@@ -1,0 +1,18 @@
+#A third subnet behind a relay agent chain
+#subnet6 3ffe:501:ffff:102::/64 {
+#       range6 3ffe:501:ffff:102::10 3ffe:501:ffff:102::11;
+#}
+
+ddns-update-style none;
+default-lease-time 600;
+max-lease-time 7200;
+
+authoritative;
+
+log-facility local7;
+
+# Subnet declaration
+subnet6 2a02:1234:420a:112d::/64 {
+        option dhcp6.name-servers 2a02:1234:420a:100b::10, 2001:4860:4860::8888;
+        option dhcp6.domain-search "netprobe.local";
+}
