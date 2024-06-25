@@ -12,13 +12,16 @@
 # Description:       Dynamic Host Configuration Protocol Server for IPv6
 ### END INIT INFO
 
+# Setzt den Pfad für Systembefehle
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
+# Prüft, ob der DHCP-Server installiert ist, andernfalls wird das Skript beendet
 test -f /usr/sbin/dhcpd || exit 0
 
+# Standardkonfigurationsdatei setzen
 DHCPD_DEFAULT="${DHCPD_DEFAULT:-/etc/default/isc-dhcp-server6}"
 
-# It is not safe to start if we don't have a default configuration...
+# Überprüfen, ob die Standardkonfigurationsdatei vorhanden ist, andernfalls Abbruch
 if [ ! -f "$DHCPD_DEFAULT" ]; then
         echo "$DHCPD_DEFAULT does not exist! - Aborting..."
         if [ "$DHCPD_DEFAULT" = "/etc/default/isc-dhcp-server" ]; then
@@ -27,22 +30,24 @@ if [ ! -f "$DHCPD_DEFAULT" ]; then
         exit 0
 fi
 
+# Läd die LSB-Init-Funktionen für log_daemon_msg und andere Hilfsfunktionen
 . /lib/lsb/init-functions
 
-# Lese Init-Skript-Konfiguration
+# Liest die Konfiguration aus der Standardkonfigurationsdatei
 [ -f "$DHCPD_DEFAULT" ] && . "$DHCPD_DEFAULT"
 
+# Setzt die Namen und Beschreibungen für DHCPv4 und DHCPv6
 NAME4=dhcpd
 NAME6=dhcpd6
 
 DESC4="ISC DHCPv4-Server"
 DESC6="ISC DHCPv6-Server"
 
-# Verwende bereits spezifizierte Konfigurationsdatei oder Standard
+# Setzt die Konfigurationsdateien für DHCPv4 und DHCPv6
 DHCPDv4_CONF=${DHCPDv4_CONF:-/etc/dhcp/dhcpd.conf}
 DHCPDv6_CONF=${DHCPDv6_CONF:-/etc/dhcp/dhcpd6.conf}
 
-# Versuche den PID-Dateinamen aus der Konfigurationsdatei zu lesen oder Standard zu verwenden
+# Liest den PID-Dateinamen aus der Konfigurationsdatei oder verwendet einen Standard
 if [ -z "$DHCPDv4_PID" ]; then
     DHCPDv4_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' "$DHCPDv4_CONF")
 fi
@@ -54,12 +59,11 @@ fi
 DHCPDv4_PID="${DHCPDv4_PID:-/var/run/dhcpd.pid}"
 DHCPDv6_PID="${DHCPDv6_PID:-/var/run/dhcpd6.pid}"
 
-
+# Funktion zur Überprüfung der Konfigurationsdatei
 test_config()
 {
         VERSION="$1"
         CONF="$2"
-
 
         if ! /usr/sbin/dhcpd -t $VERSION -q -cf "$CONF" > /dev/null 2>&1; then
                 echo "dhcpd self-test failed. Please fix $CONF."
@@ -69,6 +73,7 @@ test_config()
         fi
 }
 
+# Funktion zur Überprüfung des Status des Daemons
 check_status()
 {
         OPTION="$1"
@@ -89,6 +94,7 @@ check_status()
         fi
 }
 
+# Funktion zum Starten des Daemons
 start_daemon()
 {
         VERSION="$1"
@@ -108,7 +114,7 @@ start_daemon()
                         log_failure_msg "dhcpd service already running (pid file $PIDFILE currenty exists)"
                         exit 1
                 else
-                        echo "ingore stale pid file $PIDFILE"
+                        echo "ignore stale pid file $PIDFILE"
                 fi
         fi
 
@@ -124,6 +130,7 @@ start_daemon()
         fi
 }
 
+# Funktion zum Stoppen des Daemons
 stop_daemon()
 {
         if check_status -q $DHCPDv4_PID $NAME4; then
@@ -141,6 +148,7 @@ stop_daemon()
         fi
 }
 
+# Hauptcase-Anweisung für die verschiedenen Skriptaktionen
 case "$1" in
         start)
                 if test -n "$INTERFACES" -a -z "$INTERFACESv4"; then
@@ -197,5 +205,3 @@ case "$1" in
 esac
 
 exit 0
-
-
