@@ -12,11 +12,11 @@ iface eth0 inet static
 
 # Static IPv4
 
-address 10.80.0.36
-gateway 10.80.0.1
-network 10.80.0.0
+address 192.168.2.36
+gateway 192.168.2.1
+network 192.168.2.0
 netmask 255.255.255.0
-broadcast 10.80.0.255
+broadcast 192.168.2.255
 
 
 # Static IPv6
